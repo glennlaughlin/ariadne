@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.X.0 (UNRELEASED)
+
+- Added `validation_rules` option to query executors as well as ASGI and WSGI apps and Django view that allow developers to include custom query validation logic in their APIs.
+- Added `validation.cost_validator` query validator that allows developers to limit maximum allowed query cost/complexity.
+
+
 ## 0.10.0 (2020-02-11)
 
 - Added support for `Apollo Federation`.
