@@ -15,7 +15,7 @@ from graphql import (
 )
 from graphql.execution import MiddlewareManager
 from graphql.validation import specified_rules, validate
-from graphql.validation.rules import RuleType
+from graphql.validation.rules import ASTValidationRule
 
 from .extensions import ExtensionManager
 from .format_error import format_error
@@ -26,7 +26,11 @@ from .types import (
     GraphQLResult,
     RootValue,
     SubscriptionResult,
+    ValidationRules,
 )
+from .validation.introspection_disabled import IntrospectionDisabledRule
+
+RuleType = Type[ASTValidationRule]
 
 
 async def graphql(
@@ -36,8 +40,9 @@ async def graphql(
     context_value: Optional[Any] = None,
     root_value: Optional[RootValue] = None,
     debug: bool = False,
+    introspection: bool = True,
     logger: Optional[str] = None,
-    validation_rules: Optional[Sequence[RuleType]] = None,
+    validation_rules: Optional[ValidationRules] = None,
     error_formatter: ErrorFormatter = format_error,
     middleware: Optional[MiddlewareManager] = None,
     extensions: Optional[List[Type[Extension]]] = None,
@@ -56,7 +61,15 @@ async def graphql(
 
             document = parse_query(query)
 
-            validation_errors = validate_query(schema, document, validation_rules)
+            if callable(validation_rules):
+                validation_rules = cast(
+                    Optional[Sequence[RuleType]],
+                    validation_rules(context_value, document, data),
+                )
+
+            validation_errors = validate_query(
+                schema, document, validation_rules, enable_introspection=introspection
+            )
             if validation_errors:
                 return handle_graphql_errors(
                     validation_errors,
@@ -110,8 +123,9 @@ def graphql_sync(
     context_value: Optional[Any] = None,
     root_value: Optional[RootValue] = None,
     debug: bool = False,
+    introspection: bool = True,
     logger: Optional[str] = None,
-    validation_rules: Optional[Sequence[RuleType]] = None,
+    validation_rules: Optional[ValidationRules] = None,
     error_formatter: ErrorFormatter = format_error,
     middleware: Optional[MiddlewareManager] = None,
     extensions: Optional[List[Type[Extension]]] = None,
@@ -130,7 +144,15 @@ def graphql_sync(
 
             document = parse_query(query)
 
-            validation_errors = validate_query(schema, document, validation_rules)
+            if callable(validation_rules):
+                validation_rules = cast(
+                    Optional[Sequence[RuleType]],
+                    validation_rules(context_value, document, data),
+                )
+
+            validation_errors = validate_query(
+                schema, document, validation_rules, enable_introspection=introspection
+            )
             if validation_errors:
                 return handle_graphql_errors(
                     validation_errors,
@@ -191,8 +213,9 @@ async def subscribe(
     context_value: Optional[Any] = None,
     root_value: Optional[RootValue] = None,
     debug: bool = False,
+    introspection: bool = True,
     logger: Optional[str] = None,
-    validation_rules: Optional[Sequence[RuleType]] = None,
+    validation_rules: Optional[ValidationRules] = None,
     error_formatter: ErrorFormatter = format_error,
     **kwargs,
 ) -> SubscriptionResult:
@@ -206,7 +229,15 @@ async def subscribe(
 
         document = parse_query(query)
 
-        validation_errors = validate(schema, document, validation_rules)
+        if callable(validation_rules):
+            validation_rules = cast(
+                Optional[Sequence[RuleType]],
+                validation_rules(context_value, document, data),
+            )
+
+        validation_errors = validate_query(
+            schema, document, validation_rules, enable_introspection=introspection
+        )
         if validation_errors:
             for error_ in validation_errors:  # mypy issue #5080
                 log_error(error_, logger)
@@ -280,7 +311,7 @@ def parse_query(query):
     except GraphQLError as error:
         raise error
     except Exception as error:
-        raise GraphQLError(str(error), original_error=error)
+        raise GraphQLError(str(error), original_error=error) from error
 
 
 def add_extensions_to_response(extension_manager: ExtensionManager, response: dict):
@@ -297,13 +328,21 @@ def validate_query(
     document_ast: DocumentNode,
     rules: Optional[Sequence[RuleType]] = None,
     type_info: Optional[TypeInfo] = None,
+    enable_introspection: bool = True,
 ) -> List[GraphQLError]:
+    if not enable_introspection:
+        rules = (
+            list(rules) + [IntrospectionDisabledRule]
+            if rules is not None
+            else [IntrospectionDisabledRule]
+        )
     if rules:
         # run validation against rules from spec and custom rules
+        supplemented_rules = specified_rules + list(rules)
         return validate(
             schema,
             document_ast,
-            rules=specified_rules + list(rules),
+            rules=supplemented_rules,
             type_info=type_info,
         )
     # run validation using spec rules only
@@ -331,10 +370,3 @@ def validate_variables(variables) -> None:
 def validate_operation_name(operation_name) -> None:
     if operation_name is not None and not isinstance(operation_name, str):
         raise GraphQLError('"%s" is not a valid operation name.' % operation_name)
-
-
-def validate_context_value(context_value) -> None:
-    if callable(context_value):
-        raise ValueError(
-            "Callable context_value should be evaluated before query execution."
-        )

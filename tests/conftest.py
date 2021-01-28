@@ -1,4 +1,5 @@
 import pytest
+from graphql.validation.rules import ValidationRule
 
 from ariadne import (
     MutationType,
@@ -114,3 +115,11 @@ def schema(type_defs, resolvers, mutations, subscriptions):
     return make_executable_schema(
         type_defs, [resolvers, mutations, subscriptions, upload_scalar]
     )
+
+
+@pytest.fixture
+def validation_rule():
+    class NoopRule(ValidationRule):
+        pass
+
+    return NoopRule

@@ -1,6 +1,21 @@
 # CHANGELOG
 
-## 0.11.0 (UNRELEASED)
+## 0.13.0 (unreleased)
+
+- Updated GraphQL-core requirement to 3.1.0.
+
+
+## 0.12.0 (2020-08-04)
+
+- Added `validation_rules` option to query executors as well as ASGI and WSGI apps and Django view that allow developers to include custom query validation logic in their APIs.
+- Added `introspection` option to ASGI and WSGI apps, allowing developers to disable GraphQL introspection on their server.
+- Added `validation.cost_validator` query validator that allows developers to limit maximum allowed query cost/complexity.
+- Removed default literal parser from `ScalarType` because GraphQL already provides one.
+- Added `extensions` and `introspection` configuration options to Django view.
+- Updated requirements list to require `graphql-core` 3.
+
+
+## 0.11.0 (2020-04-01)
 
 - Fixed `convert_kwargs_to_snake_case` utility so it also converts the case in lists items.
 - Removed support for sending queries and mutations via WebSocket.

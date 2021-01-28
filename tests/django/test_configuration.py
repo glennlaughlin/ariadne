@@ -5,6 +5,7 @@ import pytest
 from django.test import override_settings
 
 from ariadne.contrib.django.views import GraphQLView
+from ariadne.types import ExtensionSync
 
 
 def execute_query(request_factory, schema, query, **kwargs):
@@ -89,6 +90,80 @@ def test_custom_root_value_function_is_called_with_context_value(
         root_value=get_root_value,
     )
     get_root_value.assert_called_once_with({"test": "TEST-CONTEXT"}, ANY)
+
+
+def test_custom_validation_rule_is_called_by_query_validation(
+    mocker, request_factory, schema, validation_rule
+):
+    spy_validation_rule = mocker.spy(validation_rule, "__init__")
+    execute_query(
+        request_factory,
+        schema,
+        {"query": "{ status }"},
+        validation_rules=[validation_rule],
+    )
+    spy_validation_rule.assert_called_once()
+
+
+def test_custom_validation_rules_function_is_set_and_called_on_query_execution(
+    mocker, request_factory, schema, validation_rule
+):
+    spy_validation_rule = mocker.spy(validation_rule, "__init__")
+    get_validation_rules = Mock(return_value=[validation_rule])
+    execute_query(
+        request_factory,
+        schema,
+        {"query": "{ status }"},
+        validation_rules=get_validation_rules,
+    )
+    get_validation_rules.assert_called_once()
+    spy_validation_rule.assert_called_once()
+
+
+def test_custom_validation_rules_function_is_called_with_context_value(
+    request_factory, schema, validation_rule
+):
+    get_validation_rules = Mock(return_value=[validation_rule])
+    execute_query(
+        request_factory,
+        schema,
+        {"query": "{ status }"},
+        context_value={"test": "TEST-CONTEXT"},
+        validation_rules=get_validation_rules,
+    )
+    get_validation_rules.assert_called_once_with({"test": "TEST-CONTEXT"}, ANY, ANY)
+
+
+def test_extensions_function_result_is_passed_to_query_executor(
+    request_factory, schema
+):
+    context = {"test": "TEST-CONTEXT"}
+    extension = Mock(spec=ExtensionSync, format=Mock(return_value={}))
+    get_extensions = Mock(return_value=[Mock(return_value=extension)])
+    execute_query(
+        request_factory,
+        schema,
+        {"query": "{ status }"},
+        context_value=context,
+        extensions=get_extensions,
+    )
+    get_extensions.assert_called_once()
+    extension.request_started.assert_called_once_with(context)
+    extension.request_finished.assert_called_once_with(context)
+
+
+def test_extension_from_option_is_passed_to_query_executor(request_factory, schema):
+    context = {"test": "TEST-CONTEXT"}
+    extension = Mock(spec=ExtensionSync, format=Mock(return_value={}))
+    execute_query(
+        request_factory,
+        schema,
+        {"query": "{ status }"},
+        context_value=context,
+        extensions=[Mock(return_value=extension)],
+    )
+    extension.request_started.assert_called_once_with(context)
+    extension.request_finished.assert_called_once_with(context)
 
 
 def execute_failing_query(request_factory, schema, **kwargs):

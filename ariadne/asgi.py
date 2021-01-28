@@ -27,7 +27,7 @@ from .file_uploads import combine_multipart_data
 from .format_error import format_error
 from .graphql import graphql, subscribe
 from .logger import log_error
-from .types import ContextValue, ErrorFormatter, Extension, RootValue
+from .types import ContextValue, ErrorFormatter, Extension, RootValue, ValidationRules
 
 GQL_CONNECTION_INIT = "connection_init"  # Client -> Server
 GQL_CONNECTION_ACK = "connection_ack"  # Server -> Client
@@ -60,7 +60,9 @@ class GraphQL:
         *,
         context_value: Optional[ContextValue] = None,
         root_value: Optional[RootValue] = None,
+        validation_rules: Optional[ValidationRules] = None,
         debug: bool = False,
+        introspection: bool = True,
         logger: Optional[str] = None,
         error_formatter: ErrorFormatter = format_error,
         extensions: Optional[Extensions] = None,
@@ -69,7 +71,9 @@ class GraphQL:
     ):
         self.context_value = context_value
         self.root_value = root_value
+        self.validation_rules = validation_rules
         self.debug = debug
+        self.introspection = introspection
         self.logger = logger
         self.error_formatter = error_formatter
         self.extensions = extensions
@@ -119,7 +123,8 @@ class GraphQL:
 
     async def handle_http(self, scope: Scope, receive: Receive, send: Send):
         request = Request(scope=scope, receive=receive)
-        if request.method == "GET":
+        if request.method == "GET" and self.introspection:
+            # only render playground when introspection is enabled
             response = await self.render_playground(request)
         elif request.method == "POST":
             response = await self.graphql_http_server(request)
@@ -151,7 +156,9 @@ class GraphQL:
             data,
             context_value=context_value,
             root_value=self.root_value,
+            validation_rules=self.validation_rules,
             debug=self.debug,
+            introspection=self.introspection,
             logger=self.logger,
             error_formatter=self.error_formatter,
             extensions=extensions,
@@ -178,27 +185,29 @@ class GraphQL:
     async def extract_data_from_json_request(self, request: Request):
         try:
             return await request.json()
-        except (TypeError, ValueError):
-            raise HttpBadRequestError("Request body is not a valid JSON")
+        except (TypeError, ValueError) as ex:
+            raise HttpBadRequestError("Request body is not a valid JSON") from ex
 
     async def extract_data_from_multipart_request(self, request: Request):
         try:
             request_body = await request.form()
-        except ValueError:
-            raise HttpBadRequestError("Request body is not a valid multipart/form-data")
+        except ValueError as ex:
+            raise HttpBadRequestError(
+                "Request body is not a valid multipart/form-data"
+            ) from ex
 
         try:
             operations = json.loads(request_body.get("operations"))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as ex:
             raise HttpBadRequestError(
                 "Request 'operations' multipart field is not a valid JSON"
-            )
+            ) from ex
         try:
             files_map = json.loads(request_body.get("map"))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as ex:
             raise HttpBadRequestError(
                 "Request 'map' multipart field is not a valid JSON"
-            )
+            ) from ex
 
         request_files = {
             key: value
@@ -270,7 +279,9 @@ class GraphQL:
             data,
             context_value=context_value,
             root_value=self.root_value,
+            validation_rules=self.validation_rules,
             debug=self.debug,
+            introspection=self.introspection,
             logger=self.logger,
             error_formatter=self.error_formatter,
         )
