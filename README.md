@@ -1,7 +1,7 @@
 [![Ariadne](https://ariadnegraphql.org/img/logo-horizontal-sm.png)](https://ariadnegraphql.org)
 
 [![Documentation](https://img.shields.io/badge/docs-ariadnegraphql.org-brightgreen.svg)](https://ariadnegraphql.org)
-[![Build Status](https://travis-ci.org/mirumee/ariadne.svg?branch=master)](https://travis-ci.org/mirumee/ariadne)
+![Build Status](https://github.com/mirumee/ariadne/actions/workflows/tests.yml/badge.svg?branch=master)
 [![Codecov](https://codecov.io/gh/mirumee/ariadne/branch/master/graph/badge.svg)](https://codecov.io/gh/mirumee/ariadne)
 
 - - - - -
@@ -10,7 +10,7 @@
 
 Ariadne is a Python library for implementing [GraphQL](http://graphql.github.io/) servers.
 
-- **Schema-first:** Ariadne enables Python developers to use schema-first approach to the API implementation. This is the leading approach used by the GraphQL community and supported by dozens of frontend and backend developer tools, examples, and learning resources. Ariadne makes all of this immediately available to your and other members of your team.
+- **Schema-first:** Ariadne enables Python developers to use schema-first approach to the API implementation. This is the leading approach used by the GraphQL community and supported by dozens of frontend and backend developer tools, examples, and learning resources. Ariadne makes all of this immediately available to you and other members of your team.
 - **Simple:** Ariadne offers small, consistent and easy to memorize API that lets developers focus on business problems, not the boilerplate.
 - **Open:** Ariadne was designed to be modular and open for customization. If you are missing or unhappy with something, extend or easily swap with your own.
 
@@ -32,7 +32,7 @@ Documentation is available [here](https://ariadnegraphql.org).
 - WSGI middleware for implementing GraphQL in existing sites.
 - Apollo Tracing and [OpenTracing](http://opentracing.io) extensions for API monitoring.
 - Opt-in automatic resolvers mapping between `camelCase` and `snake_case`, and a `@convert_kwargs_to_snake_case` function decorator for converting `camelCase` kwargs to `snake_case`.
-- Build-in simple synchronous dev server for quick GraphQL experimentation and GraphQL Playground.
+- Built-in simple synchronous dev server for quick GraphQL experimentation and GraphQL Playground.
 - Support for [Apollo GraphQL extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=apollographql.vscode-apollo).
 - GraphQL syntax validation via `gql()` helper function. Also provides colorization if Apollo GraphQL extension is installed.
 - No global state or object registry, support for multiple GraphQL APIs in same codebase with explicit type reuse.
@@ -117,7 +117,7 @@ For more guides and examples, please see the [documentation](https://ariadnegrap
 Contributing
 ------------
 
-We are welcoming contributions to Ariadne! If you've found a bug or issue, feel free to use [GitHub issues](https://github.com/mirumee/ariadne/issues). If you have any questions or feedback, don't hesitate to catch us on [Spectrum](https://spectrum.chat/ariadne).
+We are welcoming contributions to Ariadne! If you've found a bug or issue, feel free to use [GitHub issues](https://github.com/mirumee/ariadne/issues). If you have any questions or feedback, don't hesitate to catch us on [GitHub discussions](https://github.com/mirumee/ariadne/discussions/).
 
 For guidance and instructions, please see [CONTRIBUTING.md](CONTRIBUTING.md).
 
