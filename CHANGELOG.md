@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 0.17.0 (UNRELEASED)
+
+- GraphiQL2 is now default API explorer.
+- Added `explorer` option to ASGI and WSGI `GraphQL` applications that enables API explorer customization.
+- Added `ExplorerHttp405` API explorer that returns `405 Method Not Allowed` for GET HTTP requests.
+
+
+## 0.16.1 (2022-09-26)
+
+- Fixed `GraphQLTransportWSHandler` implementation to handle multiple connections.
+
+
+## 0.16.0 (2022-09-08)
+
+- Refactored `ariadne.asgi.GraphQL` to use strategy pattern for handling HTTP and WebSockets.
+- Updated `load_schema_from_path` to also support `.gql` and `.graphqls` files.
+- Added support for `starlette` 0.20.
+
+
 ## 0.15.1 (2022-04-22)
 
 - Fix performance regression in `make_federated_schema`.

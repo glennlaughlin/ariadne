@@ -1,0 +1,87 @@
+<!--
+ *  Copyright (c) 2021 GraphQL Contributors
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the license found in the
+ *  LICENSE file in the root directory of this source tree.
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{ title }}</title>
+    <style>
+      body {
+        height: 100%;
+        margin: 0;
+        width: 100%;
+        overflow: hidden;
+      }
+
+      #graphiql {
+        height: 100vh;
+      }
+    </style>
+
+    <link rel="stylesheet" href="https://unpkg.com/graphiql/graphiql.min.css" />
+    {% if enable_explorer_plugin %}
+    <link rel="stylesheet" href="https://unpkg.com/@graphiql/plugin-explorer/dist/style.css" />
+    {% endif %}
+  </head>
+
+  <body>
+    <div id="graphiql">Loading {{ title }}...</div>
+
+    <script
+      crossorigin
+      src="https://unpkg.com/react@17/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"
+    ></script>
+
+    <script
+      crossorigin
+      src="https://unpkg.com/graphiql/graphiql.min.js"
+    ></script>
+
+    {% if enable_explorer_plugin %}
+    <script
+      crossorigin
+      src="https://unpkg.com/@graphiql/plugin-explorer/dist/graphiql-plugin-explorer.umd.js"
+    ></script>
+    {% endif %}
+
+    <script>
+      var fetcher = GraphiQL.createFetcher({
+        url: window.location.href,
+      });
+
+      function GraphiQLWithExplorer() {
+        var [query, setQuery] = React.useState(
+          '{% raw default_query %}',
+        );
+        {% if enable_explorer_plugin %}
+        var explorerPlugin = GraphiQLPluginExplorer.useExplorerPlugin({
+          query: query,
+          onEdit: setQuery,
+        });
+        {% endif %}
+        return React.createElement(GraphiQL, {
+          fetcher: fetcher,
+          defaultEditorToolsVisibility: true,
+          {% if enable_explorer_plugin %}
+          plugins: [explorerPlugin],
+          {% endif %}
+          query: query,
+          onEditQuery: setQuery,
+        });
+      }
+
+      ReactDOM.render(
+        React.createElement(GraphiQLWithExplorer),
+        document.getElementById('graphiql'),
+      );
+    </script>
+  </body>
+</html>
