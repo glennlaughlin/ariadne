@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import Mapping
 
 import pytest
@@ -37,12 +38,13 @@ def type_defs():
             sourceError: Boolean
             testContext: String
             testRoot: String
+            testSlow: String
         }
     """
 
 
 def resolve_hello(*_, name):
-    return "Hello, %s!" % name
+    return f"Hello, {name}!"
 
 
 def resolve_status(*_):
@@ -58,7 +60,6 @@ def resolve_test_root(root, *_):
 
 
 def resolve_error(*_):
-    # pylint: disable=broad-exception-raised
     raise Exception("Test exception")
 
 
@@ -74,7 +75,7 @@ def resolvers():
 
 
 async def async_resolve_hello(*_, name):
-    return "Hello, %s!" % name
+    return f"Hello, {name}!"
 
 
 async def async_resolve_status(*_):
@@ -90,7 +91,6 @@ async def async_resolve_test_root(root, *_):
 
 
 async def async_resolve_error(*_):
-    # pylint: disable=broad-exception-raised
     raise Exception("Test exception")
 
 
@@ -143,7 +143,7 @@ def resolve_upload(*_, file):
 
 
 def resolve_echo(*_, text):
-    return "Echo: %s" % text
+    return f"Echo: {text}"
 
 
 @pytest.fixture
@@ -159,9 +159,8 @@ async def ping_generator(*_):
 
 
 async def error_generator(*_):
-    # pylint: disable=broad-exception-raised
     raise Exception("Test exception")
-    yield 1  # pylint: disable=unreachable
+    yield 1
 
 
 async def test_context_generator(_, info):
@@ -170,6 +169,12 @@ async def test_context_generator(_, info):
 
 async def test_root_generator(root, *_):
     yield {"testRoot": root.get("test")}
+
+
+async def test_slow_generator(*_):
+    yield {"testSlow": "slow"}
+    await asyncio.sleep(20)
+    yield {"testSlow": "slow"}
 
 
 @pytest.fixture
@@ -181,6 +186,7 @@ def subscriptions():
     subscription.set_source("sourceError", error_generator)
     subscription.set_source("testContext", test_context_generator)
     subscription.set_source("testRoot", test_root_generator)
+    subscription.set_source("testSlow", test_slow_generator)
     return subscription
 
 

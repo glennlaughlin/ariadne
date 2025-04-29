@@ -1,7 +1,7 @@
 import json
 from http import HTTPStatus
 from inspect import isawaitable
-from typing import Any, Optional, Type, Union, cast
+from typing import Any, Optional, Union, cast
 
 from graphql import DocumentNode, MiddlewareManager
 from starlette.datastructures import UploadFile
@@ -38,7 +38,7 @@ class GraphQLHTTPHandler(GraphQLHttpHandlerBase):
         self,
         extensions: Optional[Extensions] = None,
         middleware: Optional[Middlewares] = None,
-        middleware_manager_class: Optional[Type[MiddlewareManager]] = None,
+        middleware_manager_class: Optional[type[MiddlewareManager]] = None,
     ) -> None:
         """Initializes the HTTP handler.
 
@@ -93,6 +93,16 @@ class GraphQLHTTPHandler(GraphQLHttpHandlerBase):
         response = await self.handle_request(request)
         await response(scope, receive, send)
 
+    async def handle_request_override(self, _: Request) -> Optional[Response]:
+        """Override the default request handling logic in subclasses.
+        Is called in the `handle_request` method before the default logic.
+        If None is returned, the default logic is executed.
+
+         # Required arguments:
+         `_`: the `Request` instance from Starlette or FastAPI.
+        """
+        return None
+
     async def handle_request(self, request: Request) -> Response:
         """Handle GraphQL request and return response for the client.
 
@@ -115,6 +125,10 @@ class GraphQLHTTPHandler(GraphQLHttpHandlerBase):
 
         `request`: the `Request` instance from Starlette or FastAPI.
         """
+        response = await self.handle_request_override(request)
+        if response is not None:
+            return response
+
         if request.method == "GET":
             if self.execute_get_queries and request.query_params.get("query"):
                 return await self.graphql_http_server(request)
@@ -385,7 +399,7 @@ class GraphQLHTTPHandler(GraphQLHttpHandlerBase):
 
     async def create_json_response(
         self,
-        request: Request,  # pylint: disable=unused-argument
+        request: Request,
         result: dict,
         success: bool,
     ) -> Response:

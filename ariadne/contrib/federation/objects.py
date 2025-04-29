@@ -1,9 +1,11 @@
-from typing import Optional
+from typing import Optional, cast
 
+from graphql import GraphQLNamedType
 from graphql.type import GraphQLSchema
 
 from ...objects import ObjectType
 from ...types import Resolver
+from ...utils import type_set_extension
 
 
 class FederatedObjectType(ObjectType):
@@ -25,7 +27,8 @@ class FederatedObjectType(ObjectType):
 
         if callable(self._reference_resolver):
             graphql_type = schema.type_map.get(self.name)
-            setattr(
+            graphql_type = cast(GraphQLNamedType, graphql_type)
+            type_set_extension(
                 graphql_type,
                 "__resolve_reference__",
                 self._reference_resolver,

@@ -1,7 +1,16 @@
 # CHANGELOG
 
+## 0.25.1 (2025-02-03)
+- Fixed returned object for RelayObjectType
 
-## 0.24 (UNRELEASED)
+
+## 0.25 (2025-02-03)
+
+- Added support for GraphQL subscriptions over the Server-Sent Events (SSE).
+- Added support for GraphQL Relay
+
+
+## 0.24 (2024-12-19)
 
 - Added validation for directive declarations in `make_executable_schema` to prevent schema creation with undeclared directives.
 - Replaced hardcoded HTTP statuses with `HTTPStatus` from the `http` stdlib module.
@@ -10,6 +19,7 @@
 - Fixed tests websockets after starlette update.
 - Added `share_enabled` param to `ExplorerPlayground` to enable share playground feature.
 - Added support for nested attribute resolution in alias resolvers.
+- Replaced regexes in the Apollo Federation implementation with cleaner approach using GraphQL AST.
 
 
 ## 0.23 (2024-03-18)

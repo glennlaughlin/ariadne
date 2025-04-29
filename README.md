@@ -46,7 +46,7 @@ Ariadne can be installed with pip:
 pip install ariadne
 ```
 
-Ariadne requires Python 3.7 or higher.
+Ariadne requires Python 3.9 or higher.
 
 
 ## Quickstart
@@ -113,6 +113,11 @@ uvicorn example:app
 ```
 
 For more guides and examples, please see the [documentation](https://ariadnegraphql.org).
+
+## Versioning policy ##
+`ariadne` follows a custom versioning scheme where the minor version increases for breaking changes, while the patch version increments for bug fixes, enhancements, and other non-breaking updates.
+
+Since `ariadne` has not yet reached a stable API, this approach is in place until version 1.0.0. Once the API stabilizes, the project will adopt [Semantic Versioning](https://semver.org/).
 
 
 ## Contributing
