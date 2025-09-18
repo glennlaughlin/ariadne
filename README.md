@@ -15,6 +15,17 @@ Ariadne is a Python library for implementing [GraphQL](http://graphql.github.io/
 
 Documentation is available [here](https://ariadnegraphql.org).
 
+## Ariadne ecosystem
+
+| Repository | Description |
+| ---------- | ----------- |
+| [Ariadne](https://github.com/mirumee/ariadne) | Python library for implementing GraphQL servers using a schema-first approach. |
+| [Ariadne codegen](https://github.com/mirumee/ariadne-codegen) | GraphQL client code generator for Python. |
+| [Ariadne GraphQL modules](https://github.com/mirumee/ariadne-graphql-modules) | Ariadne package for implementing Ariadne GraphQL schemas using a modular approach. |
+| [Ariadne auth](https://github.com/mirumee/ariadne-auth) | A collection of authentication and authorization utilities for Ariadne. |
+| [Ariadne lambda](https://github.com/mirumee/ariadne-lambda) | Deploy Ariadne GraphQL applications as AWS Lambda functions. |
+| [Ariadne GraphQL proxy](https://github.com/mirumee/ariadne-graphql-proxy) | A GraphQL proxy for Ariadne that allows you to combine multiple GraphQL APIs into a single API. |
+
 
 ## Features
 
@@ -46,7 +57,7 @@ Ariadne can be installed with pip:
 pip install ariadne
 ```
 
-Ariadne requires Python 3.9 or higher.
+Ariadne requires Python 3.10 or higher.
 
 
 ## Quickstart
@@ -131,4 +142,4 @@ Website and the docs have their own GitHub repository: [mirumee/ariadne-website]
 Also make sure you follow [@AriadneGraphQL](https://twitter.com/AriadneGraphQL) on Twitter for latest updates, news and random musings!
 
 **Crafted with ❤️ by [Mirumee Software](http://mirumee.com)**
-hello@mirumee.com
+ariadne@mirumee.com
