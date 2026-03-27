@@ -1,4 +1,12 @@
-from graphql import GraphQLInputField, GraphQLSchema
+from collections.abc import Callable
+from enum import Enum
+from typing import Any
+
+from graphql import (
+    GraphQLEnumType,
+    GraphQLInputField,
+    GraphQLSchema,
+)
 
 from .enums_values_visitor import (
     GraphQLASTEnumDefaultValueLocation,
@@ -125,8 +133,44 @@ def repair_schema_default_enum_values(schema: GraphQLSchema) -> None:
     This function walks the GraphQL schema, finds default enum values strings and,
     if this string is a valid GraphQL member name, swaps it out for a valid Python
     value.
+
+    Also patches enum parse_value for compatibility with graphql-core >= 3.2.6,
+    which re-coerces input object argument defaults during query execution.
     """
+    _patch_enum_parse_value(schema)
     GraphQLSchemaEnumsValuesRepairVisitor(schema)
+
+
+def _patch_enum_parse_value(schema: GraphQLSchema) -> None:
+    """Patch enum parse_value to accept already-converted Python values.
+
+    graphql-core >= 3.2.6 coerces input object argument defaults during execution,
+    which would fail on repaired enum values. This patch passes them through.
+    """
+
+    def make_patched_parse_value(
+        enum_type: GraphQLEnumType,
+        original: Callable[[str], Any],
+    ) -> Callable[[Any], Any]:
+        def patched_parse_value(input_value: Any) -> Any:
+            # If input is an Enum instance or a non-string (e.g. int), return as-is.
+            # If input is a string, parse to convert to the enum object.
+            # For StrEnum, strings matching member names should be converted to
+            # enum objects.
+            if input_value in enum_type._value_lookup:
+                if isinstance(input_value, Enum) or not isinstance(input_value, str):
+                    return input_value
+            return original(input_value)
+
+        return patched_parse_value
+
+    for type_def in schema.type_map.values():
+        if isinstance(type_def, GraphQLEnumType):
+            setattr(
+                type_def,
+                "parse_value",
+                make_patched_parse_value(type_def, type_def.parse_value),
+            )
 
 
 class GraphQLSchemaEnumsValuesRepairVisitor(GraphQLSchemaEnumsValuesVisitor):

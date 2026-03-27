@@ -11,27 +11,53 @@ authors = [{ name = "Mirumee Software", email = "ariadne@mirumee.com" }]
 readme = "README.md"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
+keywords = [
+  "graphql",
+  "api",
+  "schema",
+  "schema-first",
+  "sdl",
+  "asgi",
+  "wsgi",
+  "starlette",
+  "fastapi",
+  "django",
+  "flask",
+  "subscriptions",
+  "websockets",
+  "sse",
+  "tracing",
+  "opentelemetry",
+  "federation",
+  "relay",
+  "dataloaders",
+  "asyncio",
+]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
   "License :: OSI Approved :: BSD License",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Internet :: WWW/HTTP",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-  "graphql-core>=3.2.0,<3.2.6",
-  "starlette>0.17,<1.0",
-  "typing_extensions>=3.6.0",
+  "graphql-core>=3.2.0",
+  "starlette>0.17,<2.0",
+  "typing_extensions>=4.6.0",  # TODO: Remove this dependency while droping 3.11 support
 ]
 
 [project.optional-dependencies]
 dev = ["ipdb"]
-types = ["mypy>=1.0.0"]
+types = ["ty>=0.0.15"]
 test = [
   "pytest",
   "pytest-asyncio",
@@ -42,14 +68,12 @@ test = [
   "syrupy",
   "werkzeug",
   "httpx",
-  "opentracing",
   "opentelemetry-api",
   "python-multipart>=0.0.13",
   "aiodataloader",
-  "graphql-sync-dataloaders;python_version>\"3.7\"",
+  "graphql-sync-dataloaders",
 ]
 asgi-file-uploads = ["python-multipart>=0.0.13"]
-tracing = ["opentracing"]
 telemetry = ["opentelemetry-api"]
 
 [project.urls]
@@ -82,6 +106,7 @@ path = "ariadne/__about__.py"
 
 [tool.hatch.envs.default]
 features = ["dev", "types"]
+python = "3.10"
 
 [tool.hatch.envs.default.scripts]
 check = [
@@ -95,7 +120,7 @@ check = [
 ## Types environment
 
 [tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive"
+check = "ty check"
 
 
 ## Test environments
@@ -130,7 +155,7 @@ scripts.test = "pytest tests_integrations/starlette"
 
 
 [[tool.hatch.envs.hatch-test.matrix]]
-python = ["3.10", "3.11", "3.12", "3.13"]
+python = ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
 # Tool configuration
 
@@ -143,18 +168,14 @@ testpaths = ["tests"]
 
 ## Types configuration
 
-[tool.mypy]
-python_version = "3.10"
-files = ["ariadne", "tests_mypy"]
-check_untyped_defs = true
-# disallow_untyped_defs = true
-ignore_missing_imports = true
-# warn_redundant_casts = true
-# warn_unused_ignores = true
-# disallow_any_generics = true
-no_implicit_reexport = true
-# strict = true
-disable_error_code = ["import-untyped"]
+[tool.ty.environment]
+python-version = "3.10"
+
+[tool.ty.analysis]
+allowed-unresolved-imports = ["python_multipart", "python_multipart.**", "opentelemetry.**"]
+
+[tool.ty.src]
+include = ["ariadne", "tests_mypy"]
 
 ## Coverage configuration
 
@@ -176,6 +197,13 @@ exclude_also = [
 ]
 omit = ["*/__about__.py", "*/__main__.py", "*/cli/__init__.py"]
 fail_under = 90
+
+[tool.hatch.envs.coverage]
+detached = true
+dependencies = ["coverage[toml]"]
+
+[tool.hatch.envs.coverage.scripts]
+xml = "coverage xml --skip-empty"
 
 ## Ruff configuration
 

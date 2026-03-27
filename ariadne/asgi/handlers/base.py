@@ -21,14 +21,13 @@ from ...types import (
     RootValue,
     ValidationRules,
 )
-from ...utils import context_value_one_arg_deprecated
 
 
-class GraphQLHandler(ABC):
+class GraphQLHandlerBase(ABC):
     """Base class for ASGI connection handlers."""
 
     def __init__(self) -> None:
-        """Initialize the handler instance with empty configuration."""
+        """Initialize the handler instance with an empty configuration."""
         self.schema: GraphQLSchema | None = None
         self.context_value: ContextValue | None = None
         self.debug: bool = False
@@ -69,7 +68,7 @@ class GraphQLHandler(ABC):
         https://asgi.readthedocs.io/en/latest/specs/main.html
         """
         raise NotImplementedError(
-            "Subclasses of GraphQLHandler must implement the 'handle' method."
+            "Subclasses of GraphQLHandlerBase must implement the 'handle' method."
         )
 
     def configure(
@@ -110,7 +109,7 @@ class GraphQLHandler(ABC):
     async def get_context_for_request(
         self,
         request: Any,
-        data: dict,
+        data: Any,
     ) -> Any:
         """Returns GraphQL context value for ASGI connection.
 
@@ -127,11 +126,7 @@ class GraphQLHandler(ABC):
         `data`: a GraphQL data from connection.
         """
         if callable(self.context_value):
-            try:
-                context = self.context_value(request, data)  # type: ignore
-            except TypeError:  # TODO: remove in 0.20
-                context_value_one_arg_deprecated()
-                context = self.context_value(request)  # type: ignore
+            context = self.context_value(request, data)
 
             if isawaitable(context):
                 context = await context
@@ -140,14 +135,14 @@ class GraphQLHandler(ABC):
         return self.context_value or {"request": request}
 
 
-class GraphQLHttpHandlerBase(GraphQLHandler):
+class GraphQLHttpHandlerBase(GraphQLHandlerBase):
     """Base class for ASGI HTTP connection handlers."""
 
     @abstractmethod
     async def handle_request(self, request: Any) -> Any:
         """Abstract method for handling the request.
 
-        Should return valid ASGI response.
+        Should return a valid ASGI response.
         """
 
     @abstractmethod
@@ -164,7 +159,7 @@ class GraphQLHttpHandlerBase(GraphQLHandler):
         """Abstract method for GraphQL query execution."""
 
 
-class GraphQLWebsocketHandler(GraphQLHandler):
+class GraphQLWebsocketHandlerBase(GraphQLHandlerBase):
     """Base class for ASGI websocket connection handlers."""
 
     def __init__(

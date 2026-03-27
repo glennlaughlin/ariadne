@@ -1,9 +1,5 @@
-import asyncio
 import inspect
-from collections.abc import Callable, Mapping
-from functools import wraps
 from typing import Any, cast
-from warnings import warn
 
 from graphql import GraphQLError, GraphQLNamedType, GraphQLType, parse
 from graphql.language import DocumentNode, OperationDefinitionNode, OperationType
@@ -61,6 +57,7 @@ def convert_camel_case_to_snake(graphql_name: str) -> str:
             (
                 c != graphql_name[i]
                 and graphql_name[i - 1] != "_"
+                and python_name
                 and graphql_name[i - 1] == python_name[-1]
             )
             # TESTWord -> test_word
@@ -166,47 +163,6 @@ def unwrap_graphql_error(
     return error
 
 
-def convert_kwargs_to_snake_case(func: Callable) -> Callable:
-    """Decorator for resolvers recursively converting their kwargs to `snake_case`.
-
-    Converts keys in `kwargs` dict from `camelCase` to `snake_case` using the
-    `convert_camel_case_to_snake` function. Walks values recursively, applying
-    same conversion to keys of nested dicts and dicts in lists of elements.
-
-    Returns decorated resolver function.
-
-    > **Deprecated:** This decorator is deprecated and will be deleted in future
-    version of Ariadne. Set `out_name`s explicitly in your GraphQL schema or use
-    the `convert_schema_names` option on `make_executable_schema`.
-    """
-
-    def convert_to_snake_case(m: Mapping) -> dict:
-        converted: dict = {}
-        for k, v in m.items():
-            if isinstance(v, Mapping):
-                v = convert_to_snake_case(v)
-            if isinstance(v, list):
-                v = [
-                    convert_to_snake_case(i) if isinstance(i, Mapping) else i for i in v
-                ]
-            converted[convert_camel_case_to_snake(k)] = v
-        return converted
-
-    if asyncio.iscoroutinefunction(func):
-
-        @wraps(func)
-        async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
-            return await func(*args, **convert_to_snake_case(kwargs))
-
-        return async_wrapper
-
-    @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        return func(*args, **convert_to_snake_case(kwargs))
-
-    return wrapper
-
-
 def type_implements_interface(interface: str, graphql_type: GraphQLType) -> bool:
     """Test if type definition from GraphQL schema implements an interface.
 
@@ -241,16 +197,6 @@ def get_operation_type(
             if isinstance(definition, OperationDefinitionNode):
                 return definition.operation
     raise RuntimeError("Can't get GraphQL operation type")
-
-
-def context_value_one_arg_deprecated():  # TODO: remove in 0.20
-    warn(
-        "'context_value(request)' has been deprecated and will raise a type "
-        "error in Ariadne 0.20. Change definition to "
-        "'context_value(request, data)'.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
 
 
 def type_set_extension(

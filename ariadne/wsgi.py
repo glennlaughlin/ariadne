@@ -35,13 +35,12 @@ from .types import (
     RootValue,
     ValidationRules,
 )
-from .utils import context_value_one_arg_deprecated
 
 try:
-    from python_multipart import parse_form
+    from python_multipart import parse_form  # type: ignore[import-untyped]
 except ImportError:
 
-    def parse_form(*_args, **_kwargs):  # type: ignore
+    def parse_form(*_args, **_kwargs):
         raise NotImplementedError(
             "WSGI file uploads requires 'python-multipart' library."
         )
@@ -334,10 +333,10 @@ class GraphQL:
         result = self.execute_query(environ, data)
         return self.return_response_from_result(start_response, result)
 
-    def get_request_data(self, environ: dict) -> dict:
+    def get_request_data(self, environ: dict) -> Any:
         """Extracts GraphQL request data from request.
 
-        Returns a `dict` with GraphQL query data that was not yet validated.
+        Returns GraphQL query data that was not yet validated.
 
         # Required arguments
 
@@ -358,7 +357,7 @@ class GraphQL:
     def extract_data_from_json_request(self, environ: dict) -> Any:
         """Extracts GraphQL data from JSON request.
 
-        Returns a `dict` with GraphQL query data that was not yet validated.
+        Returns GraphQL query data that was not yet validated.
 
         # Required arguments
 
@@ -445,7 +444,7 @@ class GraphQL:
 
         return combine_multipart_data(operations, files_map, form.files)
 
-    def execute_query(self, environ: dict, data: dict) -> GraphQLResult:
+    def execute_query(self, environ: dict, data: Any) -> GraphQLResult:
         """Executes GraphQL query and returns its result.
 
         Returns a `GraphQLResult`, a two items long `tuple` with `bool` for
@@ -480,7 +479,7 @@ class GraphQL:
             execution_context_class=self.execution_context_class,
         )
 
-    def get_context_for_request(self, environ: dict, data: dict) -> ContextValue | None:
+    def get_context_for_request(self, environ: dict, data: Any) -> ContextValue | None:
         """Returns GraphQL context value for HTTP request.
 
         Default `ContextValue` for WSGI application is a `dict` with single
@@ -493,11 +492,7 @@ class GraphQL:
         `data`: a GraphQL data.
         """
         if callable(self.context_value):
-            try:
-                return self.context_value(environ, data)  # type: ignore
-            except TypeError:  # TODO: remove in 0.20
-                context_value_one_arg_deprecated()
-                return self.context_value(environ)  # type: ignore
+            return self.context_value(environ, data)
         return self.context_value or {"request": environ}
 
     def get_extensions_for_request(
@@ -514,7 +509,7 @@ class GraphQL:
         `context`: a `ContextValue` for this request.
         """
         if callable(self.extensions):
-            return self.extensions(environ, context)
+            return self.extensions(environ, context)  # ty: ignore
         return self.extensions
 
     def get_middleware_for_request(
@@ -532,7 +527,7 @@ class GraphQL:
         """
         middleware = self.middleware
         if callable(middleware):
-            middleware = middleware(environ, context)
+            middleware = middleware(environ, context)  # ty: ignore
         if middleware:
             return cast(MiddlewareList, middleware)
         return None
@@ -627,8 +622,7 @@ class GraphQLMiddleware:
 
         if path == "/":
             raise ValueError(
-                "WSGI middleware can't use root path together with "
-                "application callable"
+                "WSGI middleware can't use root path together with application callable"
             )
 
     def __call__(self, environ: dict, start_response: Callable) -> list[bytes]:
@@ -664,11 +658,11 @@ def parse_multipart_request(environ: dict) -> "FormData":
     form_data = FormData(content_type)
 
     # Silence mypy error for this incorrect type.
-    # parse_fprm defines the type as dict[str, bytes] but works with
+    # parse_form defines the type as dict[str, bytes] but works with
     # dict[str, Optional[str | bytes]] and
     # will throw ValueError if Content-Type is None.
     parse_form(
-        headers,  # type: ignore
+        headers,
         environ["wsgi.input"],
         form_data.on_field,
         form_data.on_file,

@@ -1,7 +1,10 @@
 [![Ariadne](https://ariadnegraphql.org/img/logo-horizontal-sm.png)](https://ariadnegraphql.org)
 
 [![Documentation](https://img.shields.io/badge/docs-ariadnegraphql.org-brightgreen.svg)](https://ariadnegraphql.org)
-[![Codecov](https://codecov.io/gh/mirumee/ariadne/branch/master/graph/badge.svg)](https://codecov.io/gh/mirumee/ariadne)
+[![codecov](https://codecov.io/github/mirumee/ariadne/graph/badge.svg?token=8GSRgVxHd7)](https://codecov.io/github/mirumee/ariadne)
+![PyPI - Version](https://img.shields.io/pypi/v/ariadne)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/ariadne)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ariadne)
 
 - - - - -
 
@@ -21,7 +24,6 @@ Documentation is available [here](https://ariadnegraphql.org).
 | ---------- | ----------- |
 | [Ariadne](https://github.com/mirumee/ariadne) | Python library for implementing GraphQL servers using a schema-first approach. |
 | [Ariadne codegen](https://github.com/mirumee/ariadne-codegen) | GraphQL client code generator for Python. |
-| [Ariadne GraphQL modules](https://github.com/mirumee/ariadne-graphql-modules) | Ariadne package for implementing Ariadne GraphQL schemas using a modular approach. |
 | [Ariadne auth](https://github.com/mirumee/ariadne-auth) | A collection of authentication and authorization utilities for Ariadne. |
 | [Ariadne lambda](https://github.com/mirumee/ariadne-lambda) | Deploy Ariadne GraphQL applications as AWS Lambda functions. |
 | [Ariadne GraphQL proxy](https://github.com/mirumee/ariadne-graphql-proxy) | A GraphQL proxy for Ariadne that allows you to combine multiple GraphQL APIs into a single API. |
@@ -30,23 +32,21 @@ Documentation is available [here](https://ariadnegraphql.org).
 ## Features
 
 - Simple, quick to learn and easy to memorize API.
-- Compatibility with GraphQL.js version 15.5.1.
 - Queries, mutations and input types.
 - Asynchronous resolvers and query execution.
-- Subscriptions.
+- Subscriptions (async and sync generators, with customizable handlers).
 - Custom scalars, enums and schema directives.
 - Unions and interfaces.
 - File uploads.
 - Defining schema using SDL strings.
 - Loading schema from `.graphql`, `.gql`, and `.graphqls` files.
-- WSGI middleware for implementing GraphQL in existing sites.
-- Apollo Tracing and [OpenTracing](http://opentracing.io) extensions for API monitoring.
-- Opt-in automatic resolvers mapping between `camelCase` and `snake_case`, and a `@convert_kwargs_to_snake_case` function decorator for converting `camelCase` kwargs to `snake_case`.
-- Built-in simple synchronous dev server for quick GraphQL experimentation and GraphQL Playground.
-- Support for [Apollo GraphQL extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=apollographql.vscode-apollo).
-- GraphQL syntax validation via `gql()` helper function. Also provides colorization if Apollo GraphQL extension is installed.
+- ASGI and WSGI support, with integrations for Django, FastAPI, Flask, and Starlette.
+- Opt-in automatic resolvers mapping between `camelCase123` and `snake_case_123`.
+- [OpenTelemetry](https://opentelemetry.io/) extension for API monitoring.
+- Built-in [GraphiQL](https://github.com/graphql/graphiql) explorer for development and testing.
+- GraphQL syntax validation via `gql()` helper function.
 - No global state or object registry, support for multiple GraphQL APIs in same codebase with explicit type reuse.
-- Support for `Apollo Federation`.
+- Support for [Apollo Federation](https://www.apollographql.com/docs/federation/).
 
 
 ## Installation
@@ -57,12 +57,12 @@ Ariadne can be installed with pip:
 pip install ariadne
 ```
 
-Ariadne requires Python 3.10 or higher.
+Ariadne requires Python 3.10 or higher (up to 3.14).
 
 
 ## Quickstart
 
-The following example creates an API defining `Person` type and single query field `people` returning a list of two persons. It also starts a local dev server with [GraphQL Playground](https://github.com/prisma/graphql-playground) available on the `http://127.0.0.1:8000` address.
+The following example creates an API defining `Person` type and single query field `people` returning a list of two persons. It also starts a local dev server with [GraphiQL](https://github.com/graphql/graphiql) available on the `http://127.0.0.1:8000` address.
 
 Start by installing [uvicorn](http://www.uvicorn.org/), an ASGI server we will use to serve the API:
 
@@ -126,9 +126,7 @@ uvicorn example:app
 For more guides and examples, please see the [documentation](https://ariadnegraphql.org).
 
 ## Versioning policy ##
-`ariadne` follows a custom versioning scheme where the minor version increases for breaking changes, while the patch version increments for bug fixes, enhancements, and other non-breaking updates.
-
-Since `ariadne` has not yet reached a stable API, this approach is in place until version 1.0.0. Once the API stabilizes, the project will adopt [Semantic Versioning](https://semver.org/).
+`ariadne` follows [Semantic Versioning](https://semver.org/).
 
 
 ## Contributing
@@ -138,8 +136,6 @@ We are welcoming contributions to Ariadne! If you've found a bug or issue, feel 
 For guidance and instructions, please see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Website and the docs have their own GitHub repository: [mirumee/ariadne-website](https://github.com/mirumee/ariadne-website)
-
-Also make sure you follow [@AriadneGraphQL](https://twitter.com/AriadneGraphQL) on Twitter for latest updates, news and random musings!
 
 **Crafted with ❤️ by [Mirumee Software](http://mirumee.com)**
 ariadne@mirumee.com
